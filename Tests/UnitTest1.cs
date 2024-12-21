@@ -18,7 +18,25 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
     {
         _factory = factory;
         var repo = _factory.Services.GetRequiredService<IRepository<Employee>>();
-        repo.Create(new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789", Address1 = "123 Main St", City = "Anytown", State = "NY", ZipCode = "12345" });
+        repo.Create(new Employee
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            SocialSecurityNumber = "123-45-6789",
+            Address1 = "123 Main St",
+            City = "Anytown",
+            State = "NY",
+            ZipCode = "12345",
+            Benefits = new List<EmployeeBenefits>
+            {
+                new() {
+                    BenefitType = BenefitType.Health, Cost = 100.00m
+                },
+                new() {
+                    BenefitType = BenefitType.Dental, Cost = 50.00m
+                },
+            }
+        });
     }
 
 
@@ -137,6 +155,21 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
         var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         Assert.NotNull(problemDetails);
         Assert.Contains("Address1", problemDetails.Errors.Keys);
+    }
+
+    [Fact]
+    public async Task GetBenefitsForEmployee_ReturnsOkResult()
+    {
+        // Act
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync($"/employees/1/benefits");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
+        Assert.NotNull(benefits);
+        Assert.Equal(2, benefits.Count());
     }
 
 }
