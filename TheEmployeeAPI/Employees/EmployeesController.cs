@@ -16,7 +16,13 @@ public class EmployeesController : BaseController
     }
 
 
+    /// <summary>
+    /// Get all employees.
+    /// </summary>
+    /// <returns>An array of all employees.</returns>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetAll()
     {
 
@@ -34,7 +40,16 @@ public class EmployeesController : BaseController
         }));
     }
 
+
+    /// <summary>
+    /// Gets an employee by ID.
+    /// </summary>
+    /// <param name="id">The ID of the employee.</param>
+    /// <returns>The single employee record.</returns>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetById([FromRoute] int id)
     {
         var employee = _repository.GetById(id);
@@ -57,7 +72,18 @@ public class EmployeesController : BaseController
         });
     }
 
+
+    /// <summary>
+    /// Creates a new employee.
+    /// </summary>
+    /// <param name="employee">The employee to be created.</param>
+    /// <returns>A link to the employee that was created.</returns>
+
     [HttpPost]
+    [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
     public IActionResult Create([FromBody] CreateEmployeeRequest employee)
     {
         // var validationResults = await ValidateAsync(employee);
@@ -84,7 +110,18 @@ public class EmployeesController : BaseController
         return CreatedAtAction(nameof(GetById), new { id = newEmployee.Id }, newEmployee);
     }
 
+        /// <summary>
+    /// Updates an employee.
+    /// </summary>
+    /// <param name="id">The ID of the employee to update.</param>
+    /// <param name="employee">The employee data to update.</param>
+    /// <returns></returns>
+
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult Update([FromRoute] int id, [FromBody] UpdateEmployeeRequest employee)
     {
         _logger.LogInformation("Updating employee with ID: {EmployeeId}", id);
