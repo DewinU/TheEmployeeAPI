@@ -1,7 +1,7 @@
 using TheEmployeeAPI.Abstractions;
 using TheEmployeeAPI.Employees;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +13,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 builder.Services.AddProblemDetails();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddControllers(options =>
 {
-    options.Filters.Add<FluentValidationFilter>();
+    // options.Filters.Add<FluentValidationFilter>();
 });
 builder.Services.AddHttpContextAccessor();
 
