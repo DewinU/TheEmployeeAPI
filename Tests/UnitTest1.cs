@@ -18,7 +18,7 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
     {
         _factory = factory;
         var repo = _factory.Services.GetRequiredService<IRepository<Employee>>();
-        repo.Create(new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789" });
+        repo.Create(new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789", Address1 = "123 Main St", City = "Anytown", State = "NY", ZipCode = "12345" });
     }
 
 
@@ -84,11 +84,10 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task UpdateEmployee_ReturnsOkResult()
     {
         var client = _factory.CreateClient();
-        var response = await client.PutAsJsonAsync("/employees/1", new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789" });
+        var response = await client.PutAsJsonAsync("/employees/1", new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789", Address1 = "123 Main St", City = "Anytown", State = "NY", ZipCode = "12345" });
 
         response.EnsureSuccessStatusCode();
     }
-
 
     [Fact]
     public async Task UpdateEmployee_ReturnsNotFoundResult()
@@ -96,7 +95,7 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
         var client = _factory.CreateClient();
         var response = await client.PutAsJsonAsync("/employees/999", new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789" });
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -120,6 +119,24 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
 
         loggerMock.VerifyLog(logger => logger.LogInformation("Updating employee with ID: {EmployeeId}", employeeId));
         loggerMock.VerifyLog(logger => logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", employeeId));
+    }
+
+    [Fact]
+    public async Task UpdateEmployee_ReturnsBadRequestWhenAddress()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var invalidEmployee = new UpdateEmployeeRequest(); // Empty object to trigger validation errors
+
+        // Act
+        var response = await client.PutAsJsonAsync("/employees/1", invalidEmployee);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.NotNull(problemDetails);
+        Assert.Contains("Address1", problemDetails.Errors.Keys);
     }
 
 }

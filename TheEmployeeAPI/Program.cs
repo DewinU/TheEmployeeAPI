@@ -13,7 +13,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 builder.Services.AddProblemDetails();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-builder.Services.AddControllers();
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<FluentValidationFilter>();
+});
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
