@@ -703,3 +703,6 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,aspnetcore,dotnetcore,openframeworks+visualstudio,intellij+all
+TheEmployeeAPI/employees.db
+TheEmployeeAPI/employees.db-shm
+TheEmployeeAPI/employees.db-wal
