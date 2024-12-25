@@ -218,6 +218,8 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
         var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
         Assert.NotNull(benefits);
         Assert.Equal(2, benefits.Count());
+        Assert.Contains(benefits, b => b.Name == "Health");
+        Assert.Contains(benefits, b => b.Name == "Dental");
     }
 
 }
