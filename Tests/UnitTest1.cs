@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using TheEmployeeAPI;
 using TheEmployeeAPI.Employees;
 
 namespace Tests;
@@ -69,53 +70,72 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    // [Fact]
-    // public async Task CreateEmployee_ReturnsCreatedResult()
-    // {
-    //     var client = _factory.CreateClient();
-    //     var employee = new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789" };
-    //     var response = await client.PostAsJsonAsync("/employees", employee);
+    [Fact]
+    public async Task CreateEmployee_ReturnsCreatedResult()
+    {
+        var client = _factory.CreateClient();
+        var employee = new Employee { FirstName = "Test", LastName = "Test", SocialSecurityNumber = "123-45-6789" };
+        var response = await client.PostAsJsonAsync("/employees", employee);
 
-    //     response.EnsureSuccessStatusCode();
-    // }
-    // [Fact]
-    // public async Task CreateEmployee_ReturnsBadRequestResult()
-    // {
-    //     // Arrange
-    //     var client = _factory.CreateClient();
-    //     var invalidEmployee = new CreateEmployeeRequest(); // Empty object to trigger validation errors
+        response.EnsureSuccessStatusCode();
+    }
+    [Fact]
+    public async Task CreateEmployee_ReturnsBadRequestResult()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var invalidEmployee = new CreateEmployeeRequest(); // Empty object to trigger validation errors
 
-    //     // Act
-    //     var response = await client.PostAsJsonAsync("/employees", invalidEmployee);
+        // Act
+        var response = await client.PostAsJsonAsync("/employees", invalidEmployee);
 
-    //     // Assert
-    //     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-    //     var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-    //     Assert.NotNull(problemDetails);
-    //     Assert.Contains("FirstName", problemDetails.Errors.Keys);
-    //     Assert.Contains("LastName", problemDetails.Errors.Keys);
-    //     Assert.Contains("'First Name' must not be empty.", problemDetails.Errors["FirstName"]);
-    //     Assert.Contains("'Last Name' must not be empty.", problemDetails.Errors["LastName"]);
-    // }
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.NotNull(problemDetails);
+        Assert.Contains("FirstName", problemDetails.Errors.Keys);
+        Assert.Contains("LastName", problemDetails.Errors.Keys);
+        Assert.Contains("'First Name' must not be empty.", problemDetails.Errors["FirstName"]);
+        Assert.Contains("'Last Name' must not be empty.", problemDetails.Errors["LastName"]);
+    }
 
-    // [Fact]
-    // public async Task UpdateEmployee_ReturnsOkResult()
-    // {
-    //     var client = _factory.CreateClient();
-    //     var response = await client.PutAsJsonAsync("/employees/1", new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789", Address1 = "123 Main St", City = "Anytown", State = "NY", ZipCode = "12345" });
+    [Fact]
+    public async Task UpdateEmployee_ReturnsOkResult()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.PutAsJsonAsync("/employees/1", new Employee
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            SocialSecurityNumber = "123-45-6789",
+            Address1 = "123 Main Smoot"
+        });
 
-    //     response.EnsureSuccessStatusCode();
-    // }
+        response.EnsureSuccessStatusCode();
 
-    // [Fact]
-    // public async Task UpdateEmployee_ReturnsNotFoundResult()
-    // {
-    //     var client = _factory.CreateClient();
-    //     var response = await client.PutAsJsonAsync("/employees/999", new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789" });
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var employee = await db.Employees.FindAsync(1) ?? null;
+        Assert.NotNull(employee);
+        Assert.Equal("123 Main Smoot", employee.Address1);
+    }
 
-    //     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    // }
+    [Fact]
+    public async Task UpdateEmployee_ReturnsNotFoundResult()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.PutAsJsonAsync("/employees/999", new Employee { FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-6789" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.NotNull(problemDetails);
+
+        Assert.Contains("", problemDetails.Errors.Keys);
+        Assert.Contains("Employee does not exist.", problemDetails.Errors[""]);
+
+    }
 
     // [Fact]
     // public void UpdateEmployee_LogsAndReturnsOkResult()
@@ -140,38 +160,65 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
     //     loggerMock.VerifyLog(logger => logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", employeeId));
     // }
 
-    // [Fact]
-    // public async Task UpdateEmployee_ReturnsBadRequestWhenAddress()
-    // {
-    //     // Arrange
-    //     var client = _factory.CreateClient();
-    //     var invalidEmployee = new UpdateEmployeeRequest(); // Empty object to trigger validation errors
+    [Fact]
+    public async Task UpdateEmployee_ReturnsBadRequestWhenAddress()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var invalidEmployee = new UpdateEmployeeRequest(); // Empty object to trigger validation errors
 
-    //     // Act
-    //     var response = await client.PutAsJsonAsync("/employees/1", invalidEmployee);
+        // Act
+        var response = await client.PutAsJsonAsync("/employees/1", invalidEmployee);
 
-    //     // Assert
-    //     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-    //     var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-    //     Assert.NotNull(problemDetails);
-    //     Assert.Contains("Address1", problemDetails.Errors.Keys);
-    // }
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.NotNull(problemDetails);
+        Assert.Contains("Address1", problemDetails.Errors.Keys);
+    }
 
-    // [Fact]
-    // public async Task GetBenefitsForEmployee_ReturnsOkResult()
-    // {
-    //     // Act
-    //     var client = _factory.CreateClient();
-    //     var response = await client.GetAsync($"/employees/1/benefits");
+    [Fact]
+    public async Task DeleteEmployee_ReturnsNoContentResult()
+    {
+        var client = _factory.CreateClient();
 
-    //     // Assert
-    //     response.EnsureSuccessStatusCode();
+        var newEmployee = new Employee { FirstName = "Meow", LastName = "Garita", SocialSecurityNumber = "123-45-6789" };
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Employees.Add(newEmployee);
+            await db.SaveChangesAsync();
+        }
 
-    //     var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
-    //     Assert.NotNull(benefits);
-    //     Assert.Equal(2, benefits.Count());
-    // }
+        var response = await client.DeleteAsync($"/employees/{newEmployee.Id}");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteEmployee_ReturnsNotFoundResult()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.DeleteAsync("/employees/99999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetBenefitsForEmployee_ReturnsOkResult()
+    {
+        // Act
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync($"/employees/1/benefits");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
+        Assert.NotNull(benefits);
+        Assert.Equal(2, benefits.Count());
+    }
 
 }
 

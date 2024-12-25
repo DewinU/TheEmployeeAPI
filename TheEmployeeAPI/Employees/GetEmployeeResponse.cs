@@ -14,14 +14,14 @@ public class GetEmployeeResponse
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
 
-    public required List<GetEmployeeResponseEmployeeBenefit> Benefits { get; set; }
+    // public required List<GetEmployeeResponseEmployeeBenefit> Benefits { get; set; }
 
 }
 
 public class GetEmployeeResponseEmployeeBenefit
 {
     public int Id { get; set; }
-    public int EmployeeId { get; set; }
-    public BenefitType BenefitType { get; set; }
+    public required string Name { get; set; }
+    public required string Description { get; set; }
     public decimal Cost { get; set; }
 }

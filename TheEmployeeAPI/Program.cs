@@ -25,7 +25,11 @@ builder.Services.AddControllers(options =>
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+    options.EnableSensitiveDataLogging();
+}
 );
 
 var app = builder.Build();

@@ -28,7 +28,7 @@ public class EmployeesController : BaseController
         int numberOfRecords = request?.RecordsPerPage ?? 100;
 
         var query = _context.Employees
-            .Include(e => e.Benefits)
+            // .Include(e => e.Benefits)
             .Skip((page - 1) * numberOfRecords)
             .Take(numberOfRecords);
 
@@ -62,7 +62,9 @@ public class EmployeesController : BaseController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        var employee = await _context.Employees.Include(e => e.Benefits).SingleOrDefaultAsync(e => e.Id == id);
+        var employee = await _context.Employees
+        // .Include(e => e.Benefits)
+        .SingleOrDefaultAsync(e => e.Id == id);
 
         if (employee == null)
         {
@@ -73,88 +75,91 @@ public class EmployeesController : BaseController
     }
 
 
-    // /// <summary>
-    // /// Creates a new employee.
-    // /// </summary>
-    // /// <param name="employee">The employee to be created.</param>
-    // /// <returns>A link to the employee that was created.</returns>
+    /// <summary>
+    /// Creates a new employee.
+    /// </summary>
+    /// <param name="employee">The employee to be created.</param>
+    /// <returns>A link to the employee that was created.</returns>
 
-    // [HttpPost]
-    // [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
-    // [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [HttpPost]
+    [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
-    // public IActionResult Create([FromBody] CreateEmployeeRequest employee)
-    // {
-    //     // var validationResults = await ValidateAsync(employee);
-    //     // if (!validationResults.IsValid)
-    //     // {
-    //     //     return ValidationProblem(validationResults.ToModelStateDictionary());
-    //     // }
+    public async Task<IActionResult> Create([FromBody] CreateEmployeeRequest employee)
+    {
+        // var validationResults = await ValidateAsync(employee);
+        // if (!validationResults.IsValid)
+        // {
+        //     return ValidationProblem(validationResults.ToModelStateDictionary());
+        // }
 
 
-    //     var newEmployee = new Employee
-    //     {
-    //         FirstName = employee.FirstName!,
-    //         LastName = employee.LastName!,
-    //         SocialSecurityNumber = employee.SocialSecurityNumber!,
-    //         Address1 = employee.Address1,
-    //         Address2 = employee.Address2,
-    //         City = employee.City,
-    //         State = employee.State,
-    //         ZipCode = employee.ZipCode,
-    //         PhoneNumber = employee.PhoneNumber,
-    //         Email = employee.Email
-    //     };
-    //     _repository.Create(newEmployee);
-    //     return CreatedAtAction(nameof(GetById), new { id = newEmployee.Id }, newEmployee);
-    // }
+        var newEmployee = new Employee
+        {
+            FirstName = employee.FirstName!,
+            LastName = employee.LastName!,
+            SocialSecurityNumber = employee.SocialSecurityNumber!,
+            Address1 = employee.Address1,
+            Address2 = employee.Address2,
+            City = employee.City,
+            State = employee.State,
+            ZipCode = employee.ZipCode,
+            PhoneNumber = employee.PhoneNumber,
+            Email = employee.Email
+        };
 
-    // /// <summary>
-    // /// Updates an employee.
-    // /// </summary>
-    // /// <param name="id">The ID of the employee to update.</param>
-    // /// <param name="employee">The employee data to update.</param>
-    // /// <returns></returns>
+        _context.Employees.Add(newEmployee);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetById), new { id = newEmployee.Id }, newEmployee);
+    }
 
-    // [HttpPut("{id}")]
-    // [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status404NotFound)]
-    // [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    // public IActionResult Update([FromRoute] int id, [FromBody] UpdateEmployeeRequest employee)
-    // {
-    //     _logger.LogInformation("Updating employee with ID: {EmployeeId}", id);
+    /// <summary>
+    /// Updates an employee.
+    /// </summary>
+    /// <param name="id">The ID of the employee to update.</param>
+    /// <param name="employee">The employee data to update.</param>
+    /// <returns></returns>
 
-    //     var existingEmployee = _repository.GetById(id);
-    //     if (existingEmployee == null)
-    //     {
-    //         _logger.LogWarning("Employee with ID: {EmployeeId} not found", id);
-    //         return NotFound();
-    //     }
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateEmployeeRequest employee)
+    {
+        _logger.LogInformation("Updating employee with ID: {EmployeeId}", id);
 
-    //     _logger.LogDebug("Updating employee details for ID: {EmployeeId}", id);
-    //     existingEmployee.Address1 = employee.Address1;
-    //     existingEmployee.Address2 = employee.Address2;
-    //     existingEmployee.City = employee.City;
-    //     existingEmployee.State = employee.State;
-    //     existingEmployee.ZipCode = employee.ZipCode;
-    //     existingEmployee.PhoneNumber = employee.PhoneNumber;
-    //     existingEmployee.Email = employee.Email;
+        var existingEmployee = await _context.Employees.FindAsync(id);
+        if (existingEmployee == null)
+        {
+            _logger.LogWarning("Employee with ID: {EmployeeId} not found", id);
+            return NotFound();
+        }
 
-    //     try
-    //     {
-    //         _repository.Update(existingEmployee);
-    //         _logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", id);
-    //         return Ok(existingEmployee);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Error occurred while updating employee with ID: {EmployeeId}", id);
-    //         return StatusCode(500, "An error occurred while updating the employee");
-    //     }
+        _logger.LogDebug("Updating employee details for ID: {EmployeeId}", id);
+        existingEmployee.Address1 = employee.Address1;
+        existingEmployee.Address2 = employee.Address2;
+        existingEmployee.City = employee.City;
+        existingEmployee.State = employee.State;
+        existingEmployee.ZipCode = employee.ZipCode;
+        existingEmployee.PhoneNumber = employee.PhoneNumber;
+        existingEmployee.Email = employee.Email;
 
-    // }
+        try
+        {
+            _context.Entry(existingEmployee).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", id);
+            return Ok(existingEmployee);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while updating employee with ID: {EmployeeId}", id);
+            return StatusCode(500, "An error occurred while updating the employee");
+        }
+
+    }
 
 
     /// <summary>
@@ -166,17 +171,51 @@ public class EmployeesController : BaseController
     [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponseEmployeeBenefit>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetBenefitsForEmployee([FromRoute] int id)
+    public async Task<IActionResult> GetBenefitsForEmployee([FromRoute]int id)
     {
-
-        var employee = await _context.Employees.Include(e => e.Benefits).SingleOrDefaultAsync(e => e.Id == id);
+        var employee = await _context.Employees
+            .Include(e => e.Benefits)
+            .ThenInclude(e => e.Benefit)
+            .SingleOrDefaultAsync(e => e.Id == id);
 
         if (employee == null)
         {
             return NotFound();
         }
 
-        return Ok(employee.Benefits.Select(BenefitToBenefitResponse));
+        var benefits = employee.Benefits.Select(b => new GetEmployeeResponseEmployeeBenefit
+        {
+            Id = b.Id,
+            Name = b.Benefit.Name,
+            Description = b.Benefit.Description,
+            Cost = b.CostToEmployee ?? b.Benefit.BaseCost   //we want to use the cost to employee if it exists, otherwise we want to use the base cost
+        });
+
+        return Ok(benefits);
+    }
+
+    /// <summary>
+    /// Deletes an employee.
+    /// </summary>
+    /// <param name="id">The ID of the employee to delete.</param>
+    /// <returns></returns>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteEmployee([FromRoute] int id)
+    {
+        var employee = await _context.Employees.FindAsync(id);
+
+        if (employee == null)
+        {
+            return NotFound();
+        }
+
+        _context.Employees.Remove(employee);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 
 
@@ -194,19 +233,19 @@ public class EmployeesController : BaseController
             ZipCode = employee.ZipCode,
             PhoneNumber = employee.PhoneNumber,
             Email = employee.Email,
-            Benefits = employee.Benefits.Select(BenefitToBenefitResponse).ToList()
+            // Benefits = employee.Benefits.Select(BenefitToBenefitResponse).ToList()
         };
     }
 
-    private static GetEmployeeResponseEmployeeBenefit BenefitToBenefitResponse(EmployeeBenefits benefit)
-    {
-        return new GetEmployeeResponseEmployeeBenefit
-        {
-            Id = benefit.Id,
-            EmployeeId = benefit.EmployeeId,
-            BenefitType = benefit.BenefitType,
-            Cost = benefit.Cost
-        };
-    }
+    // private static GetEmployeeResponseEmployeeBenefit BenefitToBenefitResponse(EmployeeBenefits benefit)
+    // {
+    //     return new GetEmployeeResponseEmployeeBenefit
+    //     {
+    //         Id = benefit.Id,
+    //         EmployeeId = benefit.EmployeeId,
+    //         BenefitType = benefit.BenefitType,
+    //         Cost = benefit.Cost
+    //     };
+    // }
 
 }

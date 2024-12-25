@@ -10,10 +10,16 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Employee> Employees { get; set; }
-    
+    public DbSet<Benefit> Benefits { get; set; }
+    public DbSet<EmployeeBenefit> EmployeeBenefits { get; set; }
 
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder){
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<EmployeeBenefit>()
+        .HasIndex(b => new { b.BenefitId, b.EmployeeId })
+        .IsUnique();
     }
 
 }
